@@ -4,8 +4,98 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ page.title }}</title>
+  <style>
+    .navbar {
+      width: 100%;
+      background: rgba(255,255,255,0.95);
+      box-shadow: 0 2px 8px #eee;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5em 2em;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .navbar-title {
+      font-size: 1.3em;
+      color: #2e7d32;
+      font-weight: bold;
+      letter-spacing: 2px;
+      margin-right: 2em;
+    }
+    .navbar-links {
+      display: flex;
+      align-items: center;
+      gap: 1em;
+    }
+    .nav-btn {
+      font-size: 1em;
+      padding: 0.3em 1.2em;
+      border: 1px solid #2e7d32;
+      border-radius: 6px;
+      background: #fff;
+      color: #2e7d32;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      margin-right: 0.5em;
+    }
+    .nav-btn:hover, .nav-btn.active {
+      background: #2e7d32;
+      color: #fff;
+    }
+    .lang-btn {
+      font-size: 1em;
+      padding: 0.3em 1.2em;
+      margin-left: 0.5em;
+      border: 1px solid #2e7d32;
+      border-radius: 6px;
+      background: #fff;
+      color: #2e7d32;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .lang-btn.active, .lang-btn:hover {
+      background: #2e7d32;
+      color: #fff;
+    }
+  </style>
+  <script>
+    function getLang() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('lang') === 'en' ? 'en' : 'zh';
+    }
+    function switchLang(lang) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('lang', lang);
+      window.location.href = url.toString();
+    }
+    function renderNavbar() {
+      const lang = getLang();
+      const title = lang === 'en' ? 'Tea · meme Trade' : '茶叶·meme外贸';
+      const home = lang === 'en' ? 'Home' : '回到主页';
+      const shop = lang === 'en' ? 'Shop' : '商品选购';
+      document.getElementById('navbar-title').innerText = title;
+      document.getElementById('nav-home').innerText = home;
+      document.getElementById('nav-shop').innerText = shop;
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        if(btn.dataset.lang === lang) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+    }
+    document.addEventListener('DOMContentLoaded', renderNavbar);
+  </script>
 </head>
 <body>
+  <div class="navbar">
+    <span class="navbar-title" id="navbar-title">茶叶·meme外贸</span>
+    <div class="navbar-links">
+      <button class="nav-btn" id="nav-home" onclick="window.location.href='/'">回到主页</button>
+      <button class="nav-btn" id="nav-shop" onclick="window.location.href='/products.html'+window.location.search">商品选购</button>
+      <button class="lang-btn" data-lang="zh" onclick="switchLang('zh')">中文</button>
+      <button class="lang-btn" data-lang="en" onclick="switchLang('en')">English</button>
+    </div>
+  </div>
   {{ content }}
 </body>
 </html>

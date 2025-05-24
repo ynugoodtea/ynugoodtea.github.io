@@ -3,57 +3,90 @@ layout: default
 title: 商品展示
 ---
 
-<script>
-// 商品数据（中英文）
-const products_zh = [
-  {
-    name: "龙井茶",
-    image: "/assets/images/longjing.png",
-    description: "中国著名绿茶，产自杭州西湖。"
-  },
-  {
-    name: "普洱茶",
-    image: "/assets/images/puer.png",
-    description: "云南特产，具有独特陈香。"
-  }
-];
-const products_en = [
-  {
-    name: "Longjing Tea",
-    image: "/assets/images/longjing.png",
-    description: "Famous Chinese green tea from Hangzhou."
-  },
-  {
-    name: "Pu'er Tea",
-    image: "/assets/images/puer.png",
-    description: "Specialty from Yunnan with unique aged aroma."
-  }
-];
+<!-- 背景装饰SVG与渐变 -->
+<style>
+body {
+  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  min-height: 100vh;
+  position: relative;
+}
+.tea-bg-leaf {
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.18;
+}
+.tea-bg-leaf.leaf1 {
+  left: 2vw; top: 8vh; width: 120px; transform: rotate(-18deg);
+}
+.tea-bg-leaf.leaf2 {
+  right: 4vw; top: 18vh; width: 90px; transform: rotate(12deg);
+}
+.tea-bg-leaf.leaf3 {
+  left: 10vw; bottom: 10vh; width: 80px; transform: rotate(30deg);
+}
+.tea-bg-bubble {
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.10;
+  animation: floatBubble 8s infinite linear;
+}
+.tea-bg-bubble.b1 { left: 20vw; top: 60vh; width: 60px; animation-delay: 0s; }
+.tea-bg-bubble.b2 { right: 18vw; top: 70vh; width: 40px; animation-delay: 2s; }
+.tea-bg-bubble.b3 { left: 50vw; top: 80vh; width: 30px; animation-delay: 4s; }
+@keyframes floatBubble {
+  0% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-30px) scale(1.1); }
+  100% { transform: translateY(0) scale(1); }
+}
+</style>
 
+<!-- SVG茶叶和泡泡装饰 -->
+<svg class="tea-bg-leaf leaf1" viewBox="0 0 100 100"><path d="M10,90 Q50,10 90,90 Q50,70 10,90" fill="#388e3c"/></svg>
+<svg class="tea-bg-leaf leaf2" viewBox="0 0 100 100"><path d="M20,80 Q50,20 80,80 Q50,60 20,80" fill="#66bb6a"/></svg>
+<svg class="tea-bg-leaf leaf3" viewBox="0 0 100 100"><path d="M15,85 Q50,15 85,85 Q50,65 15,85" fill="#43a047"/></svg>
+<svg class="tea-bg-bubble b1" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#a5d6a7"/></svg>
+<svg class="tea-bg-bubble b2" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#81c784"/></svg>
+<svg class="tea-bg-bubble b3" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#b2dfdb"/></svg>
+
+<script id="products-data" type="application/json">
+{
+  "zh": {{ site.data.products_zh | jsonify }},
+  "en": {{ site.data.products_en | jsonify }}
+}
+</script>
+
+<script>
 function getLang() {
   const params = new URLSearchParams(window.location.search);
   return params.get('lang') === 'en' ? 'en' : 'zh';
 }
 
-function switchLang(lang) {
-  const url = new URL(window.location.href);
-  url.searchParams.set('lang', lang);
-  window.location.href = url.toString();
+function fetchProducts(lang) {
+  const data = JSON.parse(document.getElementById('products-data').textContent);
+  return data[lang] || [];
 }
 
 function renderProducts(lang) {
-  const products = lang === 'en' ? products_en : products_zh;
+  const products = fetchProducts(lang);
+  const orderText = lang === 'en' ? 'Order' : '订购';
   const container = document.getElementById('products-list');
   container.innerHTML = '';
   products.forEach(product => {
-    const card = document.createElement('div');
-    card.style = 'border:1px solid #eee; border-radius:8px; padding:1em; width:220px; text-align:center; box-shadow:0 2px 8px #eee;';
-    card.innerHTML = `
-      <img src="${product.image}" alt="${product.name}" style="width:180px; height:180px; object-fit:cover; border-radius:4px;">
-      <h3>${product.name}</h3>
-      <p>${product.description}</p>
+    const row = document.createElement('div');
+    row.className = 'product-row-big';
+    row.innerHTML = `
+      <div class='product-img-big'>
+        <img src="${product.image}" alt="${product.name}">
+      </div>
+      <div class='product-info-big'>
+        <h2>${product.name}</h2>
+        <p>${product.description}</p>
+        <button class='order-btn-big'>${orderText}</button>
+      </div>
     `;
-    container.appendChild(card);
+    container.appendChild(row);
   });
 }
 
@@ -63,9 +96,68 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<div style="margin-bottom: 1em;">
-  <button onclick="switchLang('zh')">中文</button>
-  <button onclick="switchLang('en')">English</button>
-</div>
+<style>
+#products-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5em;
+  margin: 2.5em auto;
+  max-width: 900px;
+  position: relative;
+  z-index: 1;
+}
+.product-row-big {
+  display: flex;
+  align-items: stretch;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px #eee;
+  padding: 2.5em 2.5em;
+  gap: 3em;
+  min-height: 260px;
+}
+.product-img-big {
+  display: flex;
+  align-items: center;
+}
+.product-img-big img {
+  width: 260px;
+  height: 260px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px #eee;
+}
+.product-info-big {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+.product-info-big h2 {
+  margin: 0 0 0.7em 0;
+  font-size: 2em;
+  color: #2e7d32;
+}
+.product-info-big p {
+  margin: 0 0 1.5em 0;
+  color: #444;
+  font-size: 1.2em;
+  white-space: pre-line;
+}
+.order-btn-big {
+  padding: 0.9em 3em;
+  background: #2e7d32;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.2em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.order-btn-big:hover {
+  background: #388e3c;
+}
+</style>
 
-<div id="products-list" style="display: flex; flex-wrap: wrap; gap: 2em;"></div>
+<div id="products-list"></div>

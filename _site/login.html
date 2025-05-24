@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录</title>
+  <style>
+    .navbar {
+      width: 100%;
+      background: rgba(255,255,255,0.95);
+      box-shadow: 0 2px 8px #eee;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5em 2em;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .navbar-title {
+      font-size: 1.3em;
+      color: #2e7d32;
+      font-weight: bold;
+      letter-spacing: 2px;
+      margin-right: 2em;
+    }
+    .navbar-links {
+      display: flex;
+      align-items: center;
+      gap: 1em;
+    }
+    .nav-btn {
+      font-size: 1em;
+      padding: 0.3em 1.2em;
+      border: 1px solid #2e7d32;
+      border-radius: 6px;
+      background: #fff;
+      color: #2e7d32;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      margin-right: 0.5em;
+    }
+    .nav-btn:hover, .nav-btn.active {
+      background: #2e7d32;
+      color: #fff;
+    }
+    .lang-btn {
+      font-size: 1em;
+      padding: 0.3em 1.2em;
+      margin-left: 0.5em;
+      border: 1px solid #2e7d32;
+      border-radius: 6px;
+      background: #fff;
+      color: #2e7d32;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .lang-btn.active, .lang-btn:hover {
+      background: #2e7d32;
+      color: #fff;
+    }
+  </style>
+  <script>
+    function getLang() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('lang') === 'en' ? 'en' : 'zh';
+    }
+    function switchLang(lang) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('lang', lang);
+      window.location.href = url.toString();
+    }
+    function renderNavbar() {
+      const lang = getLang();
+      const title = lang === 'en' ? 'Tea · meme Trade' : '茶叶·meme外贸';
+      const home = lang === 'en' ? 'Home' : '回到主页';
+      const shop = lang === 'en' ? 'Shop' : '商品选购';
+      document.getElementById('navbar-title').innerText = title;
+      document.getElementById('nav-home').innerText = home;
+      document.getElementById('nav-shop').innerText = shop;
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        if(btn.dataset.lang === lang) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+    }
+    document.addEventListener('DOMContentLoaded', renderNavbar);
+  </script>
+</head>
+<body>
+  <div class="navbar">
+    <span class="navbar-title" id="navbar-title">茶叶·meme外贸</span>
+    <div class="navbar-links">
+      <button class="nav-btn" id="nav-home" onclick="window.location.href='/'">回到主页</button>
+      <button class="nav-btn" id="nav-shop" onclick="window.location.href='/products.html'+window.location.search">商品选购</button>
+      <button class="lang-btn" data-lang="zh" onclick="switchLang('zh')">中文</button>
+      <button class="lang-btn" data-lang="en" onclick="switchLang('en')">English</button>
+    </div>
+  </div>
+  <style>
+.login-container {
+  max-width: 400px;
+  margin: 3em auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 12px #eee;
+  padding: 2em 2.5em 2.5em 2.5em;
+}
+.login-tabs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2em;
+}
+.login-tab {
+  flex: 1;
+  padding: 0.7em 0;
+  cursor: pointer;
+  background: #f5f5f5;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  font-size: 1.1em;
+  color: #2e7d32;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+.login-tab.active {
+  background: #2e7d32;
+  color: #fff;
+}
+.login-form {
+  display: none;
+}
+.login-form.active {
+  display: block;
+}
+.login-form input {
+  width: 100%;
+  padding: 0.7em;
+  margin-bottom: 1.2em;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1em;
+}
+.login-form button {
+  width: 100%;
+  padding: 0.8em;
+  background: #2e7d32;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.login-form button:hover {
+  background: #388e3c;
+}
+</style>
+
+<div class="login-container">
+  <div class="login-tabs">
+    <button class="login-tab active" id="tab-operator" onclick="showForm('operator')">运营商登录</button>
+    <button class="login-tab" id="tab-customer" onclick="showForm('customer')">客户登录</button>
+  </div>
+  <form class="login-form active" id="form-operator">
+    <input type="text" id="operator-account" placeholder="运营商账号" required>
+    <input type="password" id="operator-password" placeholder="密码" required>
+    <button type="submit" id="operator-login-btn">登录</button>
+  </form>
+  <form class="login-form" id="form-customer">
+    <input type="text" id="customer-account" placeholder="客户账号" required>
+    <input type="password" id="customer-password" placeholder="密码" required>
+    <button type="submit" id="customer-login-btn">登录</button>
+  </form>
+</div>
+
+<script>
+function getLang() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('lang') === 'en' ? 'en' : 'zh';
+}
+function renderLogin() {
+  const lang = getLang();
+  // tab
+  document.getElementById('tab-operator').innerText = lang === 'en' ? 'Operator Login' : '运营商登录';
+  document.getElementById('tab-customer').innerText = lang === 'en' ? 'Customer Login' : '客户登录';
+  // operator form
+  document.getElementById('operator-account').placeholder = lang === 'en' ? 'Operator Account' : '运营商账号';
+  document.getElementById('operator-password').placeholder = lang === 'en' ? 'Password' : '密码';
+  document.getElementById('operator-login-btn').innerText = lang === 'en' ? 'Login' : '登录';
+  // customer form
+  document.getElementById('customer-account').placeholder = lang === 'en' ? 'Customer Account' : '客户账号';
+  document.getElementById('customer-password').placeholder = lang === 'en' ? 'Password' : '密码';
+  document.getElementById('customer-login-btn').innerText = lang === 'en' ? 'Login' : '登录';
+}
+function showForm(type) {
+  document.getElementById('tab-operator').classList.remove('active');
+  document.getElementById('tab-customer').classList.remove('active');
+  document.getElementById('form-operator').classList.remove('active');
+  document.getElementById('form-customer').classList.remove('active');
+  if(type === 'operator') {
+    document.getElementById('tab-operator').classList.add('active');
+    document.getElementById('form-operator').classList.add('active');
+  } else {
+    document.getElementById('tab-customer').classList.add('active');
+    document.getElementById('form-customer').classList.add('active');
+  }
+}
+document.addEventListener('DOMContentLoaded', renderLogin);
+</script> 
+</body>
+</html>

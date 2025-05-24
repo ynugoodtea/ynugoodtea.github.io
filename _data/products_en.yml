@@ -1,6 +1,44 @@
-- name: Longjing Tea
+- name: Longjing
   image: /assets/images/longjing.png
-  description: Famous Chinese green tea from Hangzhou.
-- name: Pu'er Tea
+  description: >
+    West Lake Longjing is one of China's top ten famous teas, a green tea produced in the mountains around Longjing Village, Hangzhou, Zhejiang Province, with a history of over 1,200 years.
+    During the Qing Dynasty, Emperor Qianlong praised Longjing tea and designated eighteen tea trees at Shifeng Mountain as imperial tea. Longjing is graded from 1 to 8 based on appearance and quality.
+    The best Longjing is flat, smooth, straight, tender green, glossy, with a fresh and high aroma, mellow and sweet taste, and tender leaves. Tea picked before Qingming is called Mingqian Longjing, also known as "Daughter Red". "Outside the courtyard, the wind and lotus smile at Xizi, Mingqian Longjing Daughter Red."
+    West Lake Longjing, like West Lake itself, is a perfect combination of people, nature, and culture, and an important carrier of West Lake regional culture.
+- name: Pu'er
   image: /assets/images/puer.png
-  description: Specialty from Yunnan with unique aged aroma.
+  description: >
+    Pu'er tea is produced in Yunnan, China, using sun-dried large-leaf tea as raw material and processed with special techniques into a post-fermented tea. Pu'er is famous for its "the older, the better" characteristic and is known as "drinkable antique".
+    Pu'er tea emphasizes brewing skills and tasting art, can be drunk pure or blended. The tea soup is orange-yellow and thick, with a strong and lasting aroma, unique fragrance, mellow taste, and is durable for brewing.
+    Pu'er tea is mild and warms the stomach, especially ripe Pu'er. The post-fermentation process involves many microorganisms, which transform large polysaccharides into new soluble sugars and oligosaccharides, and greatly increase vitamin C, all of which help boost the immune system.
+- name: Taiping Houkui
+  image: /assets/images/houkui.png
+  description: >
+    Taiping Houkui is a traditional and historic Chinese green tea, produced in the northern foothills of Huangshan, Anhui Province, in Xinming, Longmen, and Sankou. It is a top-grade pointed tea, long renowned.
+    The leaves wrap the top bud, with the saying "two knives clip a spear" and "two leaves embrace a bud". The bud is hidden with a sharp tip, both ends are pointed, and it is said "Houkui is pointed at both ends, not loose, not warped, not curled".
+    The strips are straight and robust, green and glossy, covered with fine hairs, the first brew is fragrant, the second is strong, and even after three or four brews, the orchid aroma remains.
+- name: Biluochun
+  image: /assets/images/biluochun.jpg
+  description: >
+    Dongting Biluochun is as famous as West Lake Longjing, one of China's top ten teas, produced in East and West Dongting Mountains in Suzhou's Taihu Lake region.
+    The tea gardens are interplanted with fruit trees, and the tea is hand-fried for high quality. The unique mixed planting of tea and fruit trees is a typical model. The production process is demanding, and high-quality Biluochun is entirely handmade.
+- name: Shoumei
+  image: /assets/images/shoumei.png
+  description: >
+    Shoumei is a white tea made from Fuding Da Bai and Fuding White tea trees. The leaves are plump and slightly tender, with buds and leaves on the branch, no old stems, and the leaves are rolled like eyebrows with a pure aroma.
+    The raw tea made from tea buds and leaves is called "Xiaobai" to distinguish it from "Dabai" made from the buds and leaves of Fuding Da Bai and Zhenghe Da Bai tea trees.
+- name: Baihaoyinzhen
+  image: /assets/images/baihaoyinzhen.png
+  description: >
+    Baihaoyinzhen, created in 1796, is one of China's six major tea types. It is mainly produced in Fujian, especially Fuding, Zherong, Zhenghe, Songxi, and Jianyang, and is known as one of China's top ten famous teas, the "beauty" and "king" of tea.
+    Its appearance is straight like a needle, covered with white hairs, like silver and snow, and the finished tea is about 3cm long.
+- name: Mengding Huangya
+  image: /assets/images/mengding.png
+  description: >
+    Mengding Huangya is a bud-shaped yellow tea from Mount Mengding, Ya'an, Sichuan. Tea cultivation began in the Western Han Dynasty, over 2,000 years ago, and it was a tribute tea for emperors.
+    The appearance is flat and straight, the buds are uniform, tender yellow, with obvious bud hairs, long floral fragrance, bright yellow soup, fresh and mellow taste, and the leaves are all tender yellow. Picked around the Spring Equinox, when 10% of the buds have scales open, the garden opens for picking. Only plump single buds and one bud with one leaf are selected, and after complex processing, the finished tea is uniform, flat, straight, yellow and glossy, with golden hairs; the soup is yellow with a greenish tint, sweet and fresh, mellow and refreshing. It is the best of yellow teas.
+- name: Wenzhou Huangtang
+  image: /assets/images/huangtang.png
+  description: >
+    Wenzhou Huangtang, also known as Pingyang Huangtang, is produced in Pingyang, Cangnan, Taishun, Rui'an, Yongjia, and other places, with the best quality from Dongxi in Taishun and Beigang in Pingyang.
+    The strips are fine and tight, yellow-green with many hairs; the soup is orange-yellow and bright, the leaves are tender and uniform, the aroma is high and distant, and the taste is fresh and slightly sour. The tea is famous for its "three yellows": yellow color, yellow soup, and yellow leaves.

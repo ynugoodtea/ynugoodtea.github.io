@@ -3,8 +3,59 @@ layout: default
 title: 首页
 ---
 
-<h1>中国茶叶外贸专题网站</h1>
-<p>
-  <a href="/products.html?lang=zh">中文商品页</a> |
-  <a href="/products.html?lang=en">English Products</a>
-</p>
+<style>
+.cover-bg {
+  background: url('/assets/others/shouye.jpg') center center/cover no-repeat;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.cover-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.cover-btn {
+  font-size: 1.3em;
+  padding: 0.8em 2.5em;
+  margin: 1em;
+  border: none;
+  border-radius: 8px;
+  background: #2e7d32;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.cover-btn:hover {
+  background: #388e3c;
+}
+</style>
+
+<script>
+function getLang() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('lang') === 'en' ? 'en' : 'zh';
+}
+function renderHome() {
+  const lang = getLang();
+  const title = lang === 'en' ? 'Tea · meme Trade' : '茶叶·meme外贸';
+  const loginText = lang === 'en' ? 'Login' : '登录入口';
+  const shopText = lang === 'en' ? 'Shop' : '商品选购';
+  document.getElementById('cover-title').innerText = title;
+  document.getElementById('cover-login').innerText = loginText;
+  document.getElementById('cover-shop').innerText = shopText;
+}
+document.addEventListener('DOMContentLoaded', renderHome);
+</script>
+
+<div class="cover-bg">
+  <div class="cover-content">
+    <h1 id="cover-title" style="color:#fff;text-shadow:0 2px 8px #333;font-size:2.5em;">茶叶·meme外贸</h1>
+    <div>
+      <button class="cover-btn" id="cover-login" onclick="window.location.href='/login.html'">登录入口</button>
+      <button class="cover-btn" id="cover-shop" onclick="window.location.href='/products.html'">商品选购</button>
+    </div>
+  </div>
+</div>
