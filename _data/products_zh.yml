@@ -1,0 +1,6 @@
+- name: 龙井茶
+  image: /assets/images/longjing.png
+  description: 中国著名绿茶，产自杭州西湖。
+- name: 普洱茶
+  image: /assets/images/puer.png
+  description: 云南特产，具有独特陈香。

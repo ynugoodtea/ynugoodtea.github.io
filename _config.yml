@@ -1,0 +1,7 @@
+title: 中国茶叶外贸专题网站
+baseurl: ""
+url: ""
+default_lang: zh
+languages: [zh, en]
+
+# 其他Jekyll基础配置可后续补充 

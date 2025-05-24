@@ -1,0 +1,6 @@
+- name: Longjing Tea
+  image: /assets/images/longjing.png
+  description: Famous Chinese green tea from Hangzhou.
+- name: Pu'er Tea
+  image: /assets/images/puer.png
+  description: Specialty from Yunnan with unique aged aroma.

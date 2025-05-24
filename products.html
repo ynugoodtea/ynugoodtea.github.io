@@ -1,0 +1,71 @@
+---
+layout: default
+title: 商品展示
+---
+
+<script>
+// 商品数据（中英文）
+const products_zh = [
+  {
+    name: "龙井茶",
+    image: "/assets/images/longjing.png",
+    description: "中国著名绿茶，产自杭州西湖。"
+  },
+  {
+    name: "普洱茶",
+    image: "/assets/images/puer.png",
+    description: "云南特产，具有独特陈香。"
+  }
+];
+const products_en = [
+  {
+    name: "Longjing Tea",
+    image: "/assets/images/longjing.png",
+    description: "Famous Chinese green tea from Hangzhou."
+  },
+  {
+    name: "Pu'er Tea",
+    image: "/assets/images/puer.png",
+    description: "Specialty from Yunnan with unique aged aroma."
+  }
+];
+
+function getLang() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('lang') === 'en' ? 'en' : 'zh';
+}
+
+function switchLang(lang) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('lang', lang);
+  window.location.href = url.toString();
+}
+
+function renderProducts(lang) {
+  const products = lang === 'en' ? products_en : products_zh;
+  const container = document.getElementById('products-list');
+  container.innerHTML = '';
+  products.forEach(product => {
+    const card = document.createElement('div');
+    card.style = 'border:1px solid #eee; border-radius:8px; padding:1em; width:220px; text-align:center; box-shadow:0 2px 8px #eee;';
+    card.innerHTML = `
+      <img src="${product.image}" alt="${product.name}" style="width:180px; height:180px; object-fit:cover; border-radius:4px;">
+      <h3>${product.name}</h3>
+      <p>${product.description}</p>
+    `;
+    container.appendChild(card);
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const lang = getLang();
+  renderProducts(lang);
+});
+</script>
+
+<div style="margin-bottom: 1em;">
+  <button onclick="switchLang('zh')">中文</button>
+  <button onclick="switchLang('en')">English</button>
+</div>
+
+<div id="products-list" style="display: flex; flex-wrap: wrap; gap: 2em;"></div>
