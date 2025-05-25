@@ -61,6 +61,18 @@ title: 登录
 .login-form button:hover {
   background: #388e3c;
 }
+.switch-link {
+  color: #2e7d32;
+  cursor: pointer;
+  text-decoration: underline;
+  margin-top: 1em;
+  display: inline-block;
+}
+.error-msg {
+  color: #d32f2f;
+  margin-bottom: 1em;
+  font-size: 0.98em;
+}
 </style>
 
 <div class="login-container">
@@ -68,15 +80,30 @@ title: 登录
     <button class="login-tab active" id="tab-operator" onclick="showForm('operator')">运营商登录</button>
     <button class="login-tab" id="tab-customer" onclick="showForm('customer')">客户登录</button>
   </div>
-  <form class="login-form active" id="form-operator">
+  <form class="login-form active" id="form-operator" autocomplete="off">
+    <div id="operator-error" class="error-msg"></div>
     <input type="text" id="operator-account" placeholder="运营商账号" required>
     <input type="password" id="operator-password" placeholder="密码" required>
     <button type="submit" id="operator-login-btn">登录</button>
+    <span class="switch-link" onclick="showRegister('operator')" id="operator-register-link">没有账号？注册</span>
   </form>
-  <form class="login-form" id="form-customer">
+  <form class="login-form" id="form-customer" autocomplete="off">
+    <div id="customer-error" class="error-msg"></div>
     <input type="text" id="customer-account" placeholder="客户账号" required>
     <input type="password" id="customer-password" placeholder="密码" required>
     <button type="submit" id="customer-login-btn">登录</button>
+    <span class="switch-link" onclick="showRegister('customer')" id="customer-register-link">没有账号？注册</span>
+  </form>
+  <!-- 注册表单 -->
+  <form class="login-form" id="form-register" autocomplete="off" style="display:none;">
+    <div id="register-error" class="error-msg"></div>
+    <input type="text" id="register-username" placeholder="用户名" required>
+    <input type="password" id="register-password" placeholder="密码" required>
+    <input type="text" id="register-realname" placeholder="真实姓名" required>
+    <input type="text" id="register-contact" placeholder="联系方式" required>
+    <input type="hidden" id="register-role">
+    <button type="submit" id="register-btn">注册</button>
+    <span class="switch-link" onclick="showLogin()" id="register-back-link">返回登录</span>
   </form>
 </div>
 
@@ -94,16 +121,26 @@ function renderLogin() {
   document.getElementById('operator-account').placeholder = lang === 'en' ? 'Operator Account' : '运营商账号';
   document.getElementById('operator-password').placeholder = lang === 'en' ? 'Password' : '密码';
   document.getElementById('operator-login-btn').innerText = lang === 'en' ? 'Login' : '登录';
+  document.getElementById('operator-register-link').innerText = lang === 'en' ? "No account? Register" : "没有账号？注册";
   // customer form
   document.getElementById('customer-account').placeholder = lang === 'en' ? 'Customer Account' : '客户账号';
   document.getElementById('customer-password').placeholder = lang === 'en' ? 'Password' : '密码';
   document.getElementById('customer-login-btn').innerText = lang === 'en' ? 'Login' : '登录';
+  document.getElementById('customer-register-link').innerText = lang === 'en' ? "No account? Register" : "没有账号？注册";
+  // register form
+  document.getElementById('register-username').placeholder = lang === 'en' ? 'Username' : '用户名';
+  document.getElementById('register-password').placeholder = lang === 'en' ? 'Password' : '密码';
+  document.getElementById('register-realname').placeholder = lang === 'en' ? 'Real Name' : '真实姓名';
+  document.getElementById('register-contact').placeholder = lang === 'en' ? 'Contact' : '联系方式';
+  document.getElementById('register-btn').innerText = lang === 'en' ? 'Register' : '注册';
+  document.getElementById('register-back-link').innerText = lang === 'en' ? 'Back to Login' : '返回登录';
 }
 function showForm(type) {
   document.getElementById('tab-operator').classList.remove('active');
   document.getElementById('tab-customer').classList.remove('active');
   document.getElementById('form-operator').classList.remove('active');
   document.getElementById('form-customer').classList.remove('active');
+  document.getElementById('form-register').style.display = 'none';
   if(type === 'operator') {
     document.getElementById('tab-operator').classList.add('active');
     document.getElementById('form-operator').classList.add('active');
@@ -112,5 +149,76 @@ function showForm(type) {
     document.getElementById('form-customer').classList.add('active');
   }
 }
-document.addEventListener('DOMContentLoaded', renderLogin);
+function showRegister(role) {
+  document.getElementById('form-operator').classList.remove('active');
+  document.getElementById('form-customer').classList.remove('active');
+  document.getElementById('form-register').classList.add('active');
+  document.getElementById('form-register').style.display = '';
+  document.getElementById('register-role').value = role;
+}
+function showLogin() {
+  document.getElementById('form-register').classList.remove('active');
+  document.getElementById('form-register').style.display = 'none';
+  showForm('operator');
+}
+// 本地存储用户数据结构
+function getUsers() {
+  return JSON.parse(localStorage.getItem('users') || '[]');
+}
+function saveUsers(users) {
+  localStorage.setItem('users', JSON.stringify(users));
+}
+// 注册
+function handleRegister(e) {
+  e.preventDefault();
+  const lang = getLang();
+  const username = document.getElementById('register-username').value.trim();
+  const password = document.getElementById('register-password').value;
+  const realname = document.getElementById('register-realname').value.trim();
+  const contact = document.getElementById('register-contact').value.trim();
+  const role = document.getElementById('register-role').value;
+  const errorDiv = document.getElementById('register-error');
+  if(!username || !password || !realname || !contact) {
+    errorDiv.innerText = lang === 'en' ? 'Please fill in all fields.' : '请填写所有信息。';
+    return;
+  }
+  let users = getUsers();
+  if(users.find(u => u.username === username)) {
+    errorDiv.innerText = lang === 'en' ? 'Username already exists.' : '用户名已存在。';
+    return;
+  }
+  users.push({username, password, realname, contact, role, orders: []});
+  saveUsers(users);
+  errorDiv.innerText = '';
+  alert(lang === 'en' ? 'Registration successful! Please login.' : '注册成功，请登录。');
+  showLogin();
+}
+// 登录
+function handleLogin(e, role) {
+  e.preventDefault();
+  const lang = getLang();
+  const username = document.getElementById(role+'-account').value.trim();
+  const password = document.getElementById(role+'-password').value;
+  const errorDiv = document.getElementById(role+'-error');
+  let users = getUsers();
+  const user = users.find(u => u.username === username && u.role === role);
+  if(!user) {
+    errorDiv.innerText = lang === 'en' ? 'User does not exist or role mismatch.' : '用户不存在或身份不符。';
+    return;
+  }
+  if(user.password !== password) {
+    errorDiv.innerText = lang === 'en' ? 'Incorrect password.' : '密码错误。';
+    return;
+  }
+  errorDiv.innerText = '';
+  localStorage.setItem('currentUser', JSON.stringify(user));
+  // 登录后跳转到商品选购页
+  window.location.href = '/products.html'+window.location.search;
+}
+document.addEventListener('DOMContentLoaded', function() {
+  renderLogin();
+  document.getElementById('form-register').addEventListener('submit', handleRegister);
+  document.getElementById('form-operator').addEventListener('submit', function(e){handleLogin(e, 'operator');});
+  document.getElementById('form-customer').addEventListener('submit', function(e){handleLogin(e, 'customer');});
+});
 </script> 

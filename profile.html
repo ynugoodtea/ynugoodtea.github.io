@@ -1,0 +1,82 @@
+---
+layout: default
+title: 个人信息
+---
+
+<style>
+.profile-board { max-width: 400px; margin: 3em auto; background: #fff; border-radius: 10px; box-shadow: 0 2px 12px #eee; padding: 2em 2.5em 2.5em 2.5em; }
+.profile-title { color: #2e7d32; font-size: 2em; margin-bottom: 1.5em; text-align:center; }
+.profile-form label { display:block; margin-bottom:0.5em; color:#388e3c; }
+.profile-form input { width:100%; padding:0.7em; margin-bottom:1.2em; border:1px solid #ccc; border-radius:6px; font-size:1em; }
+.profile-form button { width:100%; padding:0.8em; background:#2e7d32; color:#fff; border:none; border-radius:6px; font-size:1.1em; cursor:pointer; transition: background 0.2s; }
+.profile-form button:hover { background:#388e3c; }
+.profile-success { color:#2e7d32; text-align:center; margin-bottom:1em; }
+</style>
+
+<div class="profile-board">
+  <div class="profile-title" id="profile-title">个人信息</div>
+  <form class="profile-form" id="profile-form">
+    <label id="profile-username-label">用户名</label>
+    <input type="text" id="profile-username" disabled>
+    <label id="profile-realname-label">真实姓名</label>
+    <input type="text" id="profile-realname" required>
+    <label id="profile-contact-label">联系方式</label>
+    <input type="text" id="profile-contact" required>
+    <button type="submit" id="profile-save-btn">保存</button>
+    <div class="profile-success" id="profile-success"></div>
+  </form>
+</div>
+
+<script>
+function getLang() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('lang') === 'en' ? 'en' : 'zh';
+}
+function getCurrentUser() {
+  return JSON.parse(localStorage.getItem('currentUser')||'null');
+}
+function getUsers() {
+  return JSON.parse(localStorage.getItem('users')||'[]');
+}
+function saveUsers(users) {
+  localStorage.setItem('users', JSON.stringify(users));
+}
+function renderProfile() {
+  const lang = getLang();
+  const user = getCurrentUser();
+  if(!user) { window.location.href = '/login.html'+window.location.search; return; }
+  document.getElementById('profile-title').innerText = lang==='en'?"Profile":"个人信息";
+  document.getElementById('profile-username-label').innerText = lang==='en'?"Username":"用户名";
+  document.getElementById('profile-realname-label').innerText = lang==='en'?"Real Name":"真实姓名";
+  document.getElementById('profile-contact-label').innerText = lang==='en'?"Contact":"联系方式";
+  document.getElementById('profile-save-btn').innerText = lang==='en'?"Save":"保存";
+  document.getElementById('profile-username').value = user.username;
+  document.getElementById('profile-realname').value = user.realname||'';
+  document.getElementById('profile-contact').value = user.contact||'';
+  document.getElementById('profile-success').innerText = '';
+}
+document.getElementById('profile-form').onsubmit = function(e){
+  e.preventDefault();
+  const lang = getLang();
+  const realname = document.getElementById('profile-realname').value.trim();
+  const contact = document.getElementById('profile-contact').value.trim();
+  if(!realname || !contact) {
+    document.getElementById('profile-success').innerText = lang==='en'?"Please fill in all fields.":"请填写所有信息。";
+    return;
+  }
+  let users = getUsers();
+  let user = getCurrentUser();
+  users.forEach(u=>{
+    if(u.username===user.username) {
+      u.realname = realname;
+      u.contact = contact;
+    }
+  });
+  saveUsers(users);
+  user.realname = realname;
+  user.contact = contact;
+  localStorage.setItem('currentUser', JSON.stringify(user));
+  document.getElementById('profile-success').innerText = lang==='en'?"Saved successfully!":"保存成功！";
+};
+document.addEventListener('DOMContentLoaded', renderProfile);
+</script> 

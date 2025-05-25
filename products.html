@@ -50,24 +50,107 @@ body {
 <svg class="tea-bg-bubble b2" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#81c784"/></svg>
 <svg class="tea-bg-bubble b3" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#b2dfdb"/></svg>
 
+<div id="products-list"></div>
+
+<!-- 下单弹窗 -->
+<div id="order-modal" style="display:none;position:fixed;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.25);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;padding:2em 2.5em;border-radius:12px;min-width:320px;max-width:90vw;box-shadow:0 4px 24px #aaa;position:relative;">
+    <span id="order-modal-close" style="position:absolute;right:1em;top:1em;cursor:pointer;font-size:1.3em;">×</span>
+    <h2 id="order-modal-title">下单</h2>
+    <form id="order-form">
+      <div style="margin-bottom:1em;"><span id="order-product-name"></span></div>
+      <input type="number" id="order-quantity" min="1" placeholder="数量" style="width:100%;margin-bottom:1em;padding:0.6em;" required>
+      <input type="text" id="order-address" placeholder="收货地址" style="width:100%;margin-bottom:1em;padding:0.6em;" required>
+      <input type="text" id="order-remark" placeholder="备注（可选）" style="width:100%;margin-bottom:1em;padding:0.6em;">
+      <button type="submit" style="width:100%;padding:0.8em;background:#2e7d32;color:#fff;border:none;border-radius:6px;font-size:1.1em;cursor:pointer;">提交订单</button>
+      <div id="order-error" style="color:#d32f2f;margin-top:0.7em;"></div>
+    </form>
+  </div>
+</div>
+
+<!-- 商品数据和JS逻辑全部放在页面底部 -->
 <script id="products-data" type="application/json">
 {
   "zh": {{ site.data.products_zh | jsonify }},
   "en": {{ site.data.products_en | jsonify }}
 }
 </script>
-
 <script>
 function getLang() {
   const params = new URLSearchParams(window.location.search);
   return params.get('lang') === 'en' ? 'en' : 'zh';
 }
-
 function fetchProducts(lang) {
   const data = JSON.parse(document.getElementById('products-data').textContent);
   return data[lang] || [];
 }
-
+function getCurrentUser() {
+  return JSON.parse(localStorage.getItem('currentUser')||'null');
+}
+function getOrders() {
+  return JSON.parse(localStorage.getItem('orders')||'[]');
+}
+function saveOrders(orders) {
+  localStorage.setItem('orders', JSON.stringify(orders));
+}
+function showOrderModal(product) {
+  const lang = getLang();
+  const user = getCurrentUser();
+  if(!user) {
+    alert(lang==='en'?"Please login first.":"请先登录");
+    window.location.href = '/login.html'+window.location.search;
+    return;
+  }
+  document.getElementById('order-modal').style.display = 'flex';
+  document.getElementById('order-modal-title').innerText = lang==='en'?"Order":"下单";
+  document.getElementById('order-product-name').innerText = (lang==='en'?"Product: ":"商品：")+product.name;
+  document.getElementById('order-quantity').value = 1;
+  document.getElementById('order-address').value = '';
+  document.getElementById('order-remark').value = '';
+  document.getElementById('order-error').innerText = '';
+  document.getElementById('order-form').onsubmit = function(e){
+    e.preventDefault();
+    const quantity = parseInt(document.getElementById('order-quantity').value);
+    const address = document.getElementById('order-address').value.trim();
+    const remark = document.getElementById('order-remark').value.trim();
+    if(!quantity || !address) {
+      document.getElementById('order-error').innerText = lang==='en'?"Please fill in all required fields.":"请填写所有必填项。";
+      return;
+    }
+    // 生成订单
+    const orders = getOrders();
+    const id = 'O'+Date.now()+Math.floor(Math.random()*1000);
+    orders.push({
+      id,
+      product: product.name,
+      quantity,
+      address,
+      remark,
+      customer: user.username,
+      status: 'pending',
+      logistics: '',
+      createdAt: new Date().toISOString()
+    });
+    saveOrders(orders);
+    // 客户用户对象同步订单id（可选，实际以orders为主）
+    let users = JSON.parse(localStorage.getItem('users')||'[]');
+    users.forEach(u=>{
+      if(u.username===user.username) {
+        if(!u.orders) u.orders=[];
+        u.orders.push({id,product:product.name,quantity,status:'pending',logistics:'',createdAt:new Date().toISOString()});
+      }
+    });
+    localStorage.setItem('users',JSON.stringify(users));
+    alert(lang==='en'?"Order submitted!":"下单成功！");
+    document.getElementById('order-modal').style.display = 'none';
+  };
+}
+document.getElementById('order-modal-close').onclick = function(){
+  document.getElementById('order-modal').style.display = 'none';
+};
+document.getElementById('order-modal').onclick = function(e){
+  if(e.target===this) this.style.display='none';
+};
 function renderProducts(lang) {
   const products = fetchProducts(lang);
   const orderText = lang === 'en' ? 'Order' : '订购';
@@ -86,12 +169,15 @@ function renderProducts(lang) {
         <button class='order-btn-big'>${orderText}</button>
       </div>
     `;
+    row.querySelector('.order-btn-big').onclick = function(){showOrderModal(product);};
     container.appendChild(row);
   });
 }
-
 document.addEventListener('DOMContentLoaded', function() {
   const lang = getLang();
+  document.getElementById('order-modal').style.display = 'none';
+  document.getElementById('order-modal').style.alignItems = 'center';
+  document.getElementById('order-modal').style.justifyContent = 'center';
   renderProducts(lang);
 });
 </script>
@@ -100,32 +186,40 @@ document.addEventListener('DOMContentLoaded', function() {
 #products-list {
   display: flex;
   flex-direction: column;
-  gap: 2.5em;
-  margin: 2.5em auto;
-  max-width: 900px;
+  gap: 3.5em;
+  margin: 3.5em auto;
+  max-width: 1200px;
   position: relative;
   z-index: 1;
 }
 .product-row-big {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px #eee;
-  padding: 2.5em 2.5em;
-  gap: 3em;
-  min-height: 260px;
+  border-radius: 24px;
+  box-shadow: 0 4px 32px #e0e0e0;
+  padding: 0;
+  min-height: 320px;
+  overflow: hidden;
 }
 .product-img-big {
+  flex: 0 0 20vw;
+  height: 20vw;
+  min-width: 240px;
+  max-width: 400px;
+  min-height: 240px;
+  max-height: 400px;
   display: flex;
   align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
 }
 .product-img-big img {
-  width: 260px;
-  height: 260px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px #eee;
+  border-radius: 0 0 0 0;
+  box-shadow: none;
 }
 .product-info-big {
   flex: 1;
@@ -133,31 +227,33 @@ document.addEventListener('DOMContentLoaded', function() {
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
+  padding: 3vw 4vw;
 }
 .product-info-big h2 {
-  margin: 0 0 0.7em 0;
-  font-size: 2em;
-  color: #2e7d32;
+  margin: 0 0 1em 0;
+  font-size: 2.2em;
+  color: #222;
+  font-weight: 700;
 }
 .product-info-big p {
-  margin: 0 0 1.5em 0;
+  margin: 0 0 2em 0;
   color: #444;
-  font-size: 1.2em;
+  font-size: 1.18em;
   white-space: pre-line;
 }
 .order-btn-big {
-  padding: 0.9em 3em;
-  background: #2e7d32;
-  color: #fff;
+  padding: 1em 3em;
+  background: #ffbe4b;
+  color: #222;
   border: none;
-  border-radius: 8px;
+  border-radius: 24px;
   font-size: 1.2em;
+  font-weight: bold;
   cursor: pointer;
   transition: background 0.2s;
+  box-shadow: 0 2px 8px #f5e1b5;
 }
 .order-btn-big:hover {
-  background: #388e3c;
+  background: #ffd77a;
 }
 </style>
-
-<div id="products-list"></div>

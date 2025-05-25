@@ -1,0 +1,154 @@
+---
+layout: default
+title: 运营商看板
+---
+
+<style>
+.kanban-board { display: flex; gap: 2em; margin: 2em 0; }
+.kanban-col { flex: 1; background: #f5f5f5; border-radius: 10px; padding: 1em; min-width: 220px; }
+.kanban-col h3 { text-align: center; color: #2e7d32; margin-bottom: 1em; }
+.kanban-card { background: #fff; border-radius: 8px; box-shadow: 0 2px 8px #eee; margin-bottom: 1em; padding: 1em; }
+.kanban-card strong { color: #388e3c; }
+.kanban-empty { color: #aaa; text-align: center; margin-top: 2em; }
+.status-btn { margin-left: 0.5em; padding: 0.2em 0.8em; border:none; border-radius:5px; background:#2e7d32; color:#fff; cursor:pointer; font-size:0.95em;}
+.status-btn:hover { background:#388e3c; }
+</style>
+
+<div style="margin:2em 0 1em 0; text-align:right;">
+  <button onclick="logout()" style="background:#2e7d32;color:#fff;border:none;padding:0.5em 1.5em;border-radius:6px;cursor:pointer;">退出登录</button>
+</div>
+
+<div class="kanban-board">
+  <div class="kanban-col" id="col-pending">
+    <h3 id="col-pending-title">待发货</h3>
+    <div id="pending-list"></div>
+  </div>
+  <div class="kanban-col" id="col-shipping">
+    <h3 id="col-shipping-title">运输中</h3>
+    <div id="shipping-list"></div>
+  </div>
+  <div class="kanban-col" id="col-done">
+    <h3 id="col-done-title">已完成</h3>
+    <div id="done-list"></div>
+  </div>
+</div>
+
+<script>
+function getLang() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('lang') === 'en' ? 'en' : 'zh';
+}
+function getCurrentUser() {
+  return JSON.parse(localStorage.getItem('currentUser')||'null');
+}
+function getOrders() {
+  return JSON.parse(localStorage.getItem('orders')||'[]');
+}
+function saveOrders(orders) {
+  localStorage.setItem('orders', JSON.stringify(orders));
+}
+function logout() {
+  localStorage.removeItem('currentUser');
+  window.location.href = '/login.html'+window.location.search;
+}
+function renderKanban() {
+  const lang = getLang();
+  const user = getCurrentUser();
+  if(!user || user.role!=='operator') { logout(); return; }
+  document.getElementById('col-pending-title').innerText = lang==='en' ? 'Pending' : '待发货';
+  document.getElementById('col-shipping-title').innerText = lang==='en' ? 'Shipping' : '运输中';
+  document.getElementById('col-done-title').innerText = lang==='en' ? 'Completed' : '已完成';
+  // 订单分组
+  const orders = getOrders();
+  const pending = [], shipping = [], done = [];
+  orders.forEach(order=>{
+    if(order.status==='pending') pending.push(order);
+    else if(order.status==='shipping') shipping.push(order);
+    else done.push(order);
+  });
+  function renderList(list, domId) {
+    const dom = document.getElementById(domId);
+    dom.innerHTML = '';
+    if(list.length===0) {
+      dom.innerHTML = `<div class='kanban-empty'>${lang==='en'?'No orders':''||'暂无订单'}</div>`;
+      return;
+    }
+    list.forEach(order=>{
+      let prevBtn = '', nextBtn = '';
+      if(order.status==='pending') {
+        nextBtn = `<button class='status-btn' onclick='changeStatus("${order.id}","next")'>${lang==='en'?'Next':'下一步'}</button>`;
+      } else if(order.status==='shipping') {
+        prevBtn = `<button class='status-btn' onclick='changeStatus("${order.id}","prev")'>${lang==='en'?'Previous':'上一步'}</button>`;
+        nextBtn = `<button class='status-btn' onclick='changeStatus("${order.id}","next")'>${lang==='en'?'Next':'下一步'}</button>`;
+      } else if(order.status==='done') {
+        prevBtn = `<button class='status-btn' onclick='changeStatus("${order.id}","prev")'>${lang==='en'?'Previous':'上一步'}</button>`;
+      }
+      dom.innerHTML += `<div class='kanban-card'>
+        <div><strong>${lang==='en'?'Order No.':'订单号'}:</strong> ${order.id}</div>
+        <div><strong>${lang==='en'?'Customer':'客户'}:</strong> ${order.customer}</div>
+        <div><strong>${lang==='en'?'Product':'商品'}:</strong> ${order.product}</div>
+        <div><strong>${lang==='en'?'Quantity':'数量'}:</strong> ${order.quantity}</div>
+        <div><strong>${lang==='en'?'Status':'状态'}:</strong> ${getStatusText(order.status,lang)}
+          ${prevBtn} ${nextBtn}
+        </div>
+        <div><strong>${lang==='en'?'Logistics':'物流'}:</strong> <input type='text' value='${order.logistics||''}' style='width:60%;padding:0.2em 0.5em;' onchange='updateLogistics("${order.id}",this.value)'></div>
+        <div><strong>${lang==='en'?'Order Time':'下单时间'}:</strong> ${order.createdAt?order.createdAt.replace('T',' ').slice(0,19):'-'}</div>
+        <div><strong>${lang==='en'?'Shipping Time':'发货时间'}:</strong> ${order.shippingTime?order.shippingTime.replace('T',' ').slice(0,19):'-'}</div>
+        <div><strong>${lang==='en'?'Done Time':'完成时间'}:</strong> ${order.doneTime?order.doneTime.replace('T',' ').slice(0,19):'-'}</div>
+      </div>`;
+    });
+  }
+  renderList(pending, 'pending-list');
+  renderList(shipping, 'shipping-list');
+  renderList(done, 'done-list');
+}
+function getStatusText(status, lang) {
+  if(lang==='en') {
+    if(status==='pending') return 'Pending';
+    if(status==='shipping') return 'Shipping';
+    return 'Completed';
+  } else {
+    if(status==='pending') return '待发货';
+    if(status==='shipping') return '运输中';
+    return '已完成';
+  }
+}
+function changeStatus(orderId, direction) {
+  let orders = getOrders();
+  for(let o of orders) {
+    if(o.id===orderId) {
+      if(direction==="next") {
+        if(o.status==='pending') {
+          o.status='shipping';
+          o.shippingTime = new Date().toISOString();
+        } else if(o.status==='shipping') {
+          o.status='done';
+          o.doneTime = new Date().toISOString();
+        }
+      } else if(direction==="prev") {
+        if(o.status==='shipping') {
+          o.status='pending';
+          o.shippingTime = '';
+        } else if(o.status==='done') {
+          o.status='shipping';
+          o.doneTime = '';
+        }
+      }
+      break;
+    }
+  }
+  saveOrders(orders);
+  renderKanban();
+}
+function updateLogistics(orderId, value) {
+  let orders = getOrders();
+  for(let o of orders) {
+    if(o.id===orderId) {
+      o.logistics = value;
+      break;
+    }
+  }
+  saveOrders(orders);
+}
+document.addEventListener('DOMContentLoaded', renderKanban);
+</script> 

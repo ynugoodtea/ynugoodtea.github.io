@@ -1,0 +1,127 @@
+---
+layout: default
+title: 我的订单
+---
+
+<style>
+.my-orders-board { max-width: 900px; margin: 2em auto; }
+.my-orders-title { color: #2e7d32; font-size: 2em; margin-bottom: 1.5em; text-align:center; }
+.my-order-card { background: #fff; border-radius: 10px; box-shadow: 0 2px 12px #eee; margin-bottom: 1.5em; padding: 1.5em; }
+.my-order-card strong { color: #388e3c; }
+.my-order-empty { color: #aaa; text-align: center; margin-top: 2em; }
+</style>
+
+<div class="my-orders-board">
+  <div class="my-orders-title" id="my-orders-title">我的订单</div>
+  <div id="my-orders-list"></div>
+</div>
+
+<script>
+function getLang() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('lang') === 'en' ? 'en' : 'zh';
+}
+function getCurrentUser() {
+  return JSON.parse(localStorage.getItem('currentUser')||'null');
+}
+function getOrders() {
+  return JSON.parse(localStorage.getItem('orders')||'[]');
+}
+function saveOrders(orders) {
+  localStorage.setItem('orders', JSON.stringify(orders));
+}
+function renderMyOrders() {
+  const lang = getLang();
+  const user = getCurrentUser();
+  if(!user) { window.location.href = '/login.html'+window.location.search; return; }
+  document.getElementById('my-orders-title').innerText = lang==='en'?"My Orders":"我的订单";
+  let orders = getOrders();
+  if(user.role === 'customer') {
+    orders = orders.filter(o=>o.customer===user.username);
+  }
+  // 按状态分组
+  const pending = [], shipping = [], done = [];
+  orders.forEach(order=>{
+    if(order.status==='pending') pending.push(order);
+    else if(order.status==='shipping') shipping.push(order);
+    else done.push(order);
+  });
+  const list = document.getElementById('my-orders-list');
+  list.innerHTML = '';
+  function renderList(title, arr, statusType) {
+    list.innerHTML += `<div style='margin:2em 0 1em 0;font-weight:bold;color:#2e7d32;font-size:1.2em;'>${title}</div>`;
+    if(arr.length===0) {
+      list.innerHTML += `<div class='my-order-empty'>${lang==='en'?'No orders yet.':'暂无订单'}</div>`;
+      return;
+    }
+    arr.forEach(order=>{
+      let prevBtn = '', nextBtn = '';
+      if(user.role==='operator') {
+        if(order.status==='pending') {
+          nextBtn = `<button class='status-btn' style='margin-left:0.7em;' onclick='changeOrderStatus("${order.id}","next")'>${lang==='en'?'Next':'下一步'}</button>`;
+        } else if(order.status==='shipping') {
+          prevBtn = `<button class='status-btn' style='margin-left:0.7em;' onclick='changeOrderStatus("${order.id}","prev")'>${lang==='en'?'Previous':'上一步'}</button>`;
+          nextBtn = `<button class='status-btn' style='margin-left:0.7em;' onclick='changeOrderStatus("${order.id}","next")'>${lang==='en'?'Next':'下一步'}</button>`;
+        } else if(order.status==='done') {
+          prevBtn = `<button class='status-btn' style='margin-left:0.7em;' onclick='changeOrderStatus("${order.id}","prev")'>${lang==='en'?'Previous':'上一步'}</button>`;
+        }
+      }
+      list.innerHTML += `<div class='my-order-card'>
+        <div><strong>${lang==='en'?'Order No.':'订单号'}:</strong> ${order.id}</div>
+        ${(user.role==='operator'?`<div><strong>${lang==='en'?'Customer':'客户'}:</strong> ${order.customer}</div>`:'')}
+        <div><strong>${lang==='en'?'Product':'商品'}:</strong> ${order.product}</div>
+        <div><strong>${lang==='en'?'Quantity':'数量'}:</strong> ${order.quantity}</div>
+        <div><strong>${lang==='en'?'Address':'收货地址'}:</strong> ${order.address||'-'}</div>
+        <div><strong>${lang==='en'?'Remark':'备注'}:</strong> ${order.remark||'-'}</div>
+        <div><strong>${lang==='en'?'Status':'状态'}:</strong> ${getStatusText(order.status,lang)} ${prevBtn} ${nextBtn}</div>
+        <div><strong>${lang==='en'?'Logistics':'物流'}:</strong> ${order.logistics||'-'}</div>
+        <div><strong>${lang==='en'?'Order Time':'下单时间'}:</strong> ${order.createdAt?order.createdAt.replace('T',' ').slice(0,19):'-'}</div>
+        <div><strong>${lang==='en'?'Shipping Time':'发货时间'}:</strong> ${order.shippingTime?order.shippingTime.replace('T',' ').slice(0,19):'-'}</div>
+        <div><strong>${lang==='en'?'Done Time':'完成时间'}:</strong> ${order.doneTime?order.doneTime.replace('T',' ').slice(0,19):'-'}</div>
+      </div>`;
+    });
+  }
+  renderList(lang==='en'?'Pending':'待发货', pending, 'pending');
+  renderList(lang==='en'?'Shipping':'运输中', shipping, 'shipping');
+  renderList(lang==='en'?'Completed':'已完成', done, 'done');
+}
+function getStatusText(status, lang) {
+  if(lang==='en') {
+    if(status==='pending') return 'Pending';
+    if(status==='shipping') return 'Shipping';
+    return 'Completed';
+  } else {
+    if(status==='pending') return '待发货';
+    if(status==='shipping') return '运输中';
+    return '已完成';
+  }
+}
+function changeOrderStatus(orderId, direction) {
+  let orders = getOrders();
+  for(let o of orders) {
+    if(o.id===orderId) {
+      if(direction==="next") {
+        if(o.status==='pending') {
+          o.status='shipping';
+          o.shippingTime = new Date().toISOString();
+        } else if(o.status==='shipping') {
+          o.status='done';
+          o.doneTime = new Date().toISOString();
+        }
+      } else if(direction==="prev") {
+        if(o.status==='shipping') {
+          o.status='pending';
+          o.shippingTime = '';
+        } else if(o.status==='done') {
+          o.status='shipping';
+          o.doneTime = '';
+        }
+      }
+      break;
+    }
+  }
+  saveOrders(orders);
+  renderMyOrders();
+}
+document.addEventListener('DOMContentLoaded', renderMyOrders);
+</script> 

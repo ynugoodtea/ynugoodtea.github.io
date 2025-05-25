@@ -82,8 +82,37 @@
         if(btn.dataset.lang === lang) btn.classList.add('active');
         else btn.classList.remove('active');
       });
+      // mine菜单多语言
+      document.getElementById('nav-mine-btn').innerText = lang==='en'?"Mine ▼":"我的 ▼";
+      document.getElementById('mine-info').innerText = lang==='en'?"Profile":"个人信息";
+      document.getElementById('mine-orders').innerText = lang==='en'?"My Orders":"我的订单";
+      document.getElementById('mine-logout').innerText = lang==='en'?"Logout":"退出登录";
+      // 登录状态判断
+      const user = JSON.parse(localStorage.getItem('currentUser')||'null');
+      document.getElementById('nav-mine').style.display = user?"block":"none";
     }
     document.addEventListener('DOMContentLoaded', renderNavbar);
+    document.addEventListener('DOMContentLoaded',function(){
+      // mine菜单交互
+      document.getElementById('nav-mine-btn').onclick = function(e){
+        e.stopPropagation();
+        const dropdown = document.getElementById('mine-dropdown');
+        dropdown.style.display = dropdown.style.display==='block'?'none':'block';
+      };
+      document.getElementById('mine-logout').onclick = function(){
+        localStorage.removeItem('currentUser');
+        window.location.href = '/login.html'+window.location.search;
+      };
+      document.getElementById('mine-info').onclick = function(){
+        window.location.href = '/profile.html'+window.location.search;
+      };
+      document.getElementById('mine-orders').onclick = function(){
+        window.location.href = '/my_orders.html'+window.location.search;
+      };
+      document.body.onclick = function(){
+        document.getElementById('mine-dropdown').style.display = 'none';
+      };
+    });
   </script>
 </head>
 <body>
@@ -92,6 +121,14 @@
     <div class="navbar-links">
       <button class="nav-btn" id="nav-home" onclick="window.location.href='/'">回到主页</button>
       <button class="nav-btn" id="nav-shop" onclick="window.location.href='/products.html'+window.location.search">商品选购</button>
+      <div id="nav-mine" style="position:relative;display:none;">
+        <button class="nav-btn" id="nav-mine-btn">我的 ▼</button>
+        <div id="mine-dropdown" style="display:none;position:absolute;right:0;top:2.5em;background:#fff;border-radius:8px;box-shadow:0 2px 12px #eee;min-width:120px;z-index:100;">
+          <div class="mine-item" id="mine-info" style="padding:0.8em 1.2em;cursor:pointer;">个人信息</div>
+          <div class="mine-item" id="mine-orders" style="padding:0.8em 1.2em;cursor:pointer;">我的订单</div>
+          <div class="mine-item" id="mine-logout" style="padding:0.8em 1.2em;cursor:pointer;color:#d32f2f;">退出登录</div>
+        </div>
+      </div>
       <button class="lang-btn" data-lang="zh" onclick="switchLang('zh')">中文</button>
       <button class="lang-btn" data-lang="en" onclick="switchLang('en')">English</button>
     </div>
@@ -143,24 +180,107 @@ body {
 <svg class="tea-bg-bubble b2" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#81c784"/></svg>
 <svg class="tea-bg-bubble b3" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#b2dfdb"/></svg>
 
+<div id="products-list"></div>
+
+<!-- 下单弹窗 -->
+<div id="order-modal" style="display:none;position:fixed;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.25);z-index:1000;align-items:center;justify-content:center;">
+  <div style="background:#fff;padding:2em 2.5em;border-radius:12px;min-width:320px;max-width:90vw;box-shadow:0 4px 24px #aaa;position:relative;">
+    <span id="order-modal-close" style="position:absolute;right:1em;top:1em;cursor:pointer;font-size:1.3em;">×</span>
+    <h2 id="order-modal-title">下单</h2>
+    <form id="order-form">
+      <div style="margin-bottom:1em;"><span id="order-product-name"></span></div>
+      <input type="number" id="order-quantity" min="1" placeholder="数量" style="width:100%;margin-bottom:1em;padding:0.6em;" required>
+      <input type="text" id="order-address" placeholder="收货地址" style="width:100%;margin-bottom:1em;padding:0.6em;" required>
+      <input type="text" id="order-remark" placeholder="备注（可选）" style="width:100%;margin-bottom:1em;padding:0.6em;">
+      <button type="submit" style="width:100%;padding:0.8em;background:#2e7d32;color:#fff;border:none;border-radius:6px;font-size:1.1em;cursor:pointer;">提交订单</button>
+      <div id="order-error" style="color:#d32f2f;margin-top:0.7em;"></div>
+    </form>
+  </div>
+</div>
+
+<!-- 商品数据和JS逻辑全部放在页面底部 -->
 <script id="products-data" type="application/json">
 {
   "zh": [{"name":"龙井","image":"/assets/images/longjing.png","description":"西湖龙井是中国十大名茶之一，属绿茶，其产于浙江省杭州市西湖龙井村周围群山，并因此得名，具有1200多年历史。 清乾隆游览杭州西湖时，盛赞西湖龙井茶，把狮峰山下胡公庙前的十八棵茶树封为“御茶”。西湖龙井按外形和内质的优次分作1～8级。 特级西湖龙井茶扁平光滑挺直，色泽嫩绿光润，香气鲜嫩清高，滋味鲜爽甘醇，叶底细嫩呈朵。清明节前采制的龙井茶简称明前龙井，美称女儿红，“院外风荷西子笑，明前龙井女儿红。” 西湖龙井茶与西湖一样，是人、自然、文化三者的完美结晶，是西湖地域文化的重要载体。\n"},{"name":"普洱","image":"/assets/images/puer.png","description":"普洱茶是产自中国云南省，以云南大叶种晒青毛茶为原料，经过特定工艺加工而成的一种后发酵茶。普洱茶以其越陈越香的特点而闻名，被誉为“可以喝的古董”。 普洱茶讲究冲泡技巧和品饮艺术，可清饮，可混饮。普洱茶茶汤橙黄浓厚，香气高锐持久，香型独特，滋味浓醇，经久耐泡。 普洱茶茶性温和，暖胃不伤胃，这点对熟普洱茶尤为明显，普洱茶的后发酵过程是由大量微生物参与的，在微生物的作用下，茶叶中的大分子多糖类物质转化成了大量新的可溶性单糖和寡糖，维生素C成倍增加，这些物质对提高人体免疫系统功能发挥重要的作用。\n"},{"name":"太平猴魁","image":"/assets/images/houkui.png","description":"太平猴魁，中国传统名茶，中国历史名茶之一，属于绿茶类尖茶，产于安徽省黄山市北麓的黄山区（原太平县）新明、龙门、三口一带，为尖茶之极品，久享盛名。 外形叶裹顶芽，有“两刀夹一枪”及“二叶抱一芽”之喻，芽藏锋露尖，顶尖尾削，形成两端尖细，有“猴魁两头尖，不散不翘不卷边”之称。 条形挺直壮实，色绿光润，普生茸毫，头泡香高，二泡味浓，冲泡三四次，滋味不减，兰香犹存。\n"},{"name":"碧螺春","image":"/assets/images/biluochun.jpg","description":"洞庭山碧螺春茶是与西湖龙井茶齐名的中国十大名茶之一，产于苏州太湖流域的东洞庭山（现苏州吴中区东山镇）和西洞庭山（现苏州太湖西山岛上的吴中区金庭镇）两地。 洞庭山的茶林和果园融为一体，茶树和桃、李、杏、梅、枇杷等果树交错种植，是典型的茶果间作套种模式。 洞庭山碧螺春茶的制作工艺要求很高，高品质的茶叶需要全手工炒制。\n"},{"name":"寿眉","image":"/assets/images/shoumei.png","description":"寿眉，乃以福鼎大白、福鼎白茶树制成的白茶。寿眉叶张稍肥嫩，芽叶连枝，无老梗，叶整卷如眉，香气清纯。 其中用茶芽叶制成的毛茶称为“小白”，以区别于福鼎大白茶、政和大白茶茶树芽叶制成的“大白”毛茶。\n"},{"name":"白毫银针","image":"/assets/images/baihaoyinzhen.png","description":"白毫银针，创制于1796年，是中国六大茶类之一的白茶，原产地在福建，主要产区为福鼎、柘荣、政和、松溪、建阳等地，素有中国十大名茶的称号，素有茶中“美女”、“茶王”之美称。 其外观特征挺直似针，满披白毫，如银似雪，成品茶长约3cm。\n"},{"name":"蒙顶黄芽","image":"/assets/images/mengding.png","description":"蒙顶黄芽，是芽形黄茶之一，产于四川省雅安市蒙顶山。蒙顶茶栽培始于西汉，距今已有二千年的历史，古时为贡品供历代皇帝享用。 蒙顶黄芽外形扁直，芽条匀整，色泽嫩黄，芽毫显露，花香幽长，汤色黄亮透碧，滋味鲜醇回甘，叶底全芽嫩黄采摘于春分时节，茶树上有10%的芽头鳞片展开，即可开园采摘。 选圆肥单芽和一芽一叶初展的芽头，经复杂制作工艺，使成茶芽条匀整，扁平挺直，色泽黄润，金毫显露；汤色黄中透碧，甜香鲜嫩，甘醇鲜爽。为黄茶之极品。\n"},{"name":"温州黄汤","image":"/assets/images/huangtang.png","description":"温州黄汤亦称温州黄汤、平阳黄汤。产于平阳、苍南、泰顺、瑞安、永嘉等地，以泰顺的东溪与平阳的北港所产品质最佳。 条索细紧纤秀，色泽黄绿多毫；汤色橙黄鲜明，叶底嫩匀成朵，香气清高幽远，滋味和酸鲜爽。成茶以“三黄”，即“色黄，汤黄，叶底黄”闻名。"}],
   "en": [{"name":"Longjing","image":"/assets/images/longjing.png","description":"West Lake Longjing is one of China's top ten famous teas, a green tea produced in the mountains around Longjing Village, Hangzhou, Zhejiang Province, with a history of over 1,200 years. During the Qing Dynasty, Emperor Qianlong praised Longjing tea and designated eighteen tea trees at Shifeng Mountain as imperial tea. Longjing is graded from 1 to 8 based on appearance and quality. The best Longjing is flat, smooth, straight, tender green, glossy, with a fresh and high aroma, mellow and sweet taste, and tender leaves. Tea picked before Qingming is called Mingqian Longjing, also known as \"Daughter Red\". \"Outside the courtyard, the wind and lotus smile at Xizi, Mingqian Longjing Daughter Red.\" West Lake Longjing, like West Lake itself, is a perfect combination of people, nature, and culture, and an important carrier of West Lake regional culture.\n"},{"name":"Pu'er","image":"/assets/images/puer.png","description":"Pu'er tea is produced in Yunnan, China, using sun-dried large-leaf tea as raw material and processed with special techniques into a post-fermented tea. Pu'er is famous for its \"the older, the better\" characteristic and is known as \"drinkable antique\". Pu'er tea emphasizes brewing skills and tasting art, can be drunk pure or blended. The tea soup is orange-yellow and thick, with a strong and lasting aroma, unique fragrance, mellow taste, and is durable for brewing. Pu'er tea is mild and warms the stomach, especially ripe Pu'er. The post-fermentation process involves many microorganisms, which transform large polysaccharides into new soluble sugars and oligosaccharides, and greatly increase vitamin C, all of which help boost the immune system.\n"},{"name":"Taiping Houkui","image":"/assets/images/houkui.png","description":"Taiping Houkui is a traditional and historic Chinese green tea, produced in the northern foothills of Huangshan, Anhui Province, in Xinming, Longmen, and Sankou. It is a top-grade pointed tea, long renowned. The leaves wrap the top bud, with the saying \"two knives clip a spear\" and \"two leaves embrace a bud\". The bud is hidden with a sharp tip, both ends are pointed, and it is said \"Houkui is pointed at both ends, not loose, not warped, not curled\". The strips are straight and robust, green and glossy, covered with fine hairs, the first brew is fragrant, the second is strong, and even after three or four brews, the orchid aroma remains.\n"},{"name":"Biluochun","image":"/assets/images/biluochun.jpg","description":"Dongting Biluochun is as famous as West Lake Longjing, one of China's top ten teas, produced in East and West Dongting Mountains in Suzhou's Taihu Lake region. The tea gardens are interplanted with fruit trees, and the tea is hand-fried for high quality. The unique mixed planting of tea and fruit trees is a typical model. The production process is demanding, and high-quality Biluochun is entirely handmade.\n"},{"name":"Shoumei","image":"/assets/images/shoumei.png","description":"Shoumei is a white tea made from Fuding Da Bai and Fuding White tea trees. The leaves are plump and slightly tender, with buds and leaves on the branch, no old stems, and the leaves are rolled like eyebrows with a pure aroma. The raw tea made from tea buds and leaves is called \"Xiaobai\" to distinguish it from \"Dabai\" made from the buds and leaves of Fuding Da Bai and Zhenghe Da Bai tea trees.\n"},{"name":"Baihaoyinzhen","image":"/assets/images/baihaoyinzhen.png","description":"Baihaoyinzhen, created in 1796, is one of China's six major tea types. It is mainly produced in Fujian, especially Fuding, Zherong, Zhenghe, Songxi, and Jianyang, and is known as one of China's top ten famous teas, the \"beauty\" and \"king\" of tea. Its appearance is straight like a needle, covered with white hairs, like silver and snow, and the finished tea is about 3cm long.\n"},{"name":"Mengding Huangya","image":"/assets/images/mengding.png","description":"Mengding Huangya is a bud-shaped yellow tea from Mount Mengding, Ya'an, Sichuan. Tea cultivation began in the Western Han Dynasty, over 2,000 years ago, and it was a tribute tea for emperors. The appearance is flat and straight, the buds are uniform, tender yellow, with obvious bud hairs, long floral fragrance, bright yellow soup, fresh and mellow taste, and the leaves are all tender yellow. Picked around the Spring Equinox, when 10% of the buds have scales open, the garden opens for picking. Only plump single buds and one bud with one leaf are selected, and after complex processing, the finished tea is uniform, flat, straight, yellow and glossy, with golden hairs; the soup is yellow with a greenish tint, sweet and fresh, mellow and refreshing. It is the best of yellow teas.\n"},{"name":"Wenzhou Huangtang","image":"/assets/images/huangtang.png","description":"Wenzhou Huangtang, also known as Pingyang Huangtang, is produced in Pingyang, Cangnan, Taishun, Rui'an, Yongjia, and other places, with the best quality from Dongxi in Taishun and Beigang in Pingyang. The strips are fine and tight, yellow-green with many hairs; the soup is orange-yellow and bright, the leaves are tender and uniform, the aroma is high and distant, and the taste is fresh and slightly sour. The tea is famous for its \"three yellows\": yellow color, yellow soup, and yellow leaves.\n"}]
 }
 </script>
-
 <script>
 function getLang() {
   const params = new URLSearchParams(window.location.search);
   return params.get('lang') === 'en' ? 'en' : 'zh';
 }
-
 function fetchProducts(lang) {
   const data = JSON.parse(document.getElementById('products-data').textContent);
   return data[lang] || [];
 }
-
+function getCurrentUser() {
+  return JSON.parse(localStorage.getItem('currentUser')||'null');
+}
+function getOrders() {
+  return JSON.parse(localStorage.getItem('orders')||'[]');
+}
+function saveOrders(orders) {
+  localStorage.setItem('orders', JSON.stringify(orders));
+}
+function showOrderModal(product) {
+  const lang = getLang();
+  const user = getCurrentUser();
+  if(!user) {
+    alert(lang==='en'?"Please login first.":"请先登录");
+    window.location.href = '/login.html'+window.location.search;
+    return;
+  }
+  document.getElementById('order-modal').style.display = 'flex';
+  document.getElementById('order-modal-title').innerText = lang==='en'?"Order":"下单";
+  document.getElementById('order-product-name').innerText = (lang==='en'?"Product: ":"商品：")+product.name;
+  document.getElementById('order-quantity').value = 1;
+  document.getElementById('order-address').value = '';
+  document.getElementById('order-remark').value = '';
+  document.getElementById('order-error').innerText = '';
+  document.getElementById('order-form').onsubmit = function(e){
+    e.preventDefault();
+    const quantity = parseInt(document.getElementById('order-quantity').value);
+    const address = document.getElementById('order-address').value.trim();
+    const remark = document.getElementById('order-remark').value.trim();
+    if(!quantity || !address) {
+      document.getElementById('order-error').innerText = lang==='en'?"Please fill in all required fields.":"请填写所有必填项。";
+      return;
+    }
+    // 生成订单
+    const orders = getOrders();
+    const id = 'O'+Date.now()+Math.floor(Math.random()*1000);
+    orders.push({
+      id,
+      product: product.name,
+      quantity,
+      address,
+      remark,
+      customer: user.username,
+      status: 'pending',
+      logistics: '',
+      createdAt: new Date().toISOString()
+    });
+    saveOrders(orders);
+    // 客户用户对象同步订单id（可选，实际以orders为主）
+    let users = JSON.parse(localStorage.getItem('users')||'[]');
+    users.forEach(u=>{
+      if(u.username===user.username) {
+        if(!u.orders) u.orders=[];
+        u.orders.push({id,product:product.name,quantity,status:'pending',logistics:'',createdAt:new Date().toISOString()});
+      }
+    });
+    localStorage.setItem('users',JSON.stringify(users));
+    alert(lang==='en'?"Order submitted!":"下单成功！");
+    document.getElementById('order-modal').style.display = 'none';
+  };
+}
+document.getElementById('order-modal-close').onclick = function(){
+  document.getElementById('order-modal').style.display = 'none';
+};
+document.getElementById('order-modal').onclick = function(e){
+  if(e.target===this) this.style.display='none';
+};
 function renderProducts(lang) {
   const products = fetchProducts(lang);
   const orderText = lang === 'en' ? 'Order' : '订购';
@@ -179,12 +299,15 @@ function renderProducts(lang) {
         <button class='order-btn-big'>${orderText}</button>
       </div>
     `;
+    row.querySelector('.order-btn-big').onclick = function(){showOrderModal(product);};
     container.appendChild(row);
   });
 }
-
 document.addEventListener('DOMContentLoaded', function() {
   const lang = getLang();
+  document.getElementById('order-modal').style.display = 'none';
+  document.getElementById('order-modal').style.alignItems = 'center';
+  document.getElementById('order-modal').style.justifyContent = 'center';
   renderProducts(lang);
 });
 </script>
@@ -193,32 +316,40 @@ document.addEventListener('DOMContentLoaded', function() {
 #products-list {
   display: flex;
   flex-direction: column;
-  gap: 2.5em;
-  margin: 2.5em auto;
-  max-width: 900px;
+  gap: 3.5em;
+  margin: 3.5em auto;
+  max-width: 1200px;
   position: relative;
   z-index: 1;
 }
 .product-row-big {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 4px 24px #eee;
-  padding: 2.5em 2.5em;
-  gap: 3em;
-  min-height: 260px;
+  border-radius: 24px;
+  box-shadow: 0 4px 32px #e0e0e0;
+  padding: 0;
+  min-height: 320px;
+  overflow: hidden;
 }
 .product-img-big {
+  flex: 0 0 20vw;
+  height: 20vw;
+  min-width: 240px;
+  max-width: 400px;
+  min-height: 240px;
+  max-height: 400px;
   display: flex;
   align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
 }
 .product-img-big img {
-  width: 260px;
-  height: 260px;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px #eee;
+  border-radius: 0 0 0 0;
+  box-shadow: none;
 }
 .product-info-big {
   flex: 1;
@@ -226,34 +357,36 @@ document.addEventListener('DOMContentLoaded', function() {
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
+  padding: 3vw 4vw;
 }
 .product-info-big h2 {
-  margin: 0 0 0.7em 0;
-  font-size: 2em;
-  color: #2e7d32;
+  margin: 0 0 1em 0;
+  font-size: 2.2em;
+  color: #222;
+  font-weight: 700;
 }
 .product-info-big p {
-  margin: 0 0 1.5em 0;
+  margin: 0 0 2em 0;
   color: #444;
-  font-size: 1.2em;
+  font-size: 1.18em;
   white-space: pre-line;
 }
 .order-btn-big {
-  padding: 0.9em 3em;
-  background: #2e7d32;
-  color: #fff;
+  padding: 1em 3em;
+  background: #ffbe4b;
+  color: #222;
   border: none;
-  border-radius: 8px;
+  border-radius: 24px;
   font-size: 1.2em;
+  font-weight: bold;
   cursor: pointer;
   transition: background 0.2s;
+  box-shadow: 0 2px 8px #f5e1b5;
 }
 .order-btn-big:hover {
-  background: #388e3c;
+  background: #ffd77a;
 }
 </style>
-
-<div id="products-list"></div>
 
 </body>
 </html>
