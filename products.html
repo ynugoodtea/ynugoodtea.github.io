@@ -6,9 +6,20 @@ title: 商品展示
 <!-- 背景装饰SVG与渐变 -->
 <style>
 body {
-  background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+  background: linear-gradient(135deg, #ffe066 0%, #a8e063 100%);
   min-height: 100vh;
   position: relative;
+  overflow-x: hidden;
+}
+.falling-leaf {
+  position: fixed !important;
+  z-index: 9999 !important;
+  pointer-events: none;
+  will-change: transform, opacity;
+  opacity: 0.85;
+  transition: opacity 0.5s;
+  top: 0;
+  left: 0;
 }
 .tea-bg-leaf {
   position: fixed;
@@ -49,6 +60,11 @@ body {
 <svg class="tea-bg-bubble b1" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#a5d6a7"/></svg>
 <svg class="tea-bg-bubble b2" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#81c784"/></svg>
 <svg class="tea-bg-bubble b3" viewBox="0 0 100 100"><circle cx="50" cy="50" r="50" fill="#b2dfdb"/></svg>
+
+<!-- 叶子SVG模板（隐藏） -->
+<svg id="leaf-svg-1" style="display:none;" viewBox="0 0 40 40"><path d="M20 2 Q38 18 20 38 Q2 18 20 2 Z" fill="#a8e063"/></svg>
+<svg id="leaf-svg-2" style="display:none;" viewBox="0 0 40 40"><ellipse cx="20" cy="20" rx="16" ry="8" fill="#ffe066"/></svg>
+<svg id="leaf-svg-3" style="display:none;" viewBox="0 0 40 40"><path d="M20 4 Q36 20 20 36 Q4 20 20 4 Q24 20 20 36 Q16 20 20 4 Z" fill="#6ab04c"/></svg>
 
 <div id="products-list"></div>
 
@@ -93,6 +109,13 @@ function getOrders() {
 function saveOrders(orders) {
   localStorage.setItem('orders', JSON.stringify(orders));
 }
+
+// 分页相关变量
+let currentPage = 1;
+const pageSize = 6;
+let totalPages = 1;
+let productsCache = [];
+
 function showOrderModal(product) {
   const lang = getLang();
   const user = getCurrentUser();
@@ -151,8 +174,14 @@ document.getElementById('order-modal-close').onclick = function(){
 document.getElementById('order-modal').onclick = function(e){
   if(e.target===this) this.style.display='none';
 };
-function renderProducts(lang) {
-  const products = fetchProducts(lang);
+
+function renderProducts(lang, page) {
+  productsCache = fetchProducts(lang);
+  totalPages = Math.ceil(productsCache.length / pageSize);
+  if(page < 1) page = 1;
+  if(page > totalPages) page = totalPages;
+  currentPage = page;
+  const products = productsCache.slice((page-1)*pageSize, page*pageSize);
   const orderText = lang === 'en' ? 'Order' : '订购';
   const container = document.getElementById('products-list');
   container.innerHTML = '';
@@ -172,13 +201,108 @@ function renderProducts(lang) {
     row.querySelector('.order-btn-big').onclick = function(){showOrderModal(product);};
     container.appendChild(row);
   });
+  // 分页按钮
+  renderPagination(lang);
 }
+
+function renderPagination(lang) {
+  let container = document.getElementById('products-list');
+  let pagDiv = document.getElementById('products-pagination');
+  if(!pagDiv) {
+    pagDiv = document.createElement('div');
+    pagDiv.id = 'products-pagination';
+    container.parentNode.appendChild(pagDiv);
+  }
+  pagDiv.innerHTML = '';
+  if(totalPages <= 1) return;
+  pagDiv.style.textAlign = 'center';
+  pagDiv.style.margin = '2em 0 3em 0';
+  const prevBtn = document.createElement('button');
+  prevBtn.innerText = lang==='en' ? 'Previous' : '上一页';
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.className = 'order-btn-big';
+  prevBtn.style.marginRight = '1.5em';
+  prevBtn.onclick = function(){ renderProducts(lang, currentPage-1); };
+  pagDiv.appendChild(prevBtn);
+  const pageInfo = document.createElement('span');
+  pageInfo.innerText = (lang==='en' ? 'Page' : '第') + currentPage + (lang==='en' ? ' of ' : '页，共') + totalPages + (lang==='en' ? '' : '页');
+  pageInfo.style.margin = '0 1.5em';
+  pageInfo.style.fontSize = '1.1em';
+  pagDiv.appendChild(pageInfo);
+  const nextBtn = document.createElement('button');
+  nextBtn.innerText = lang==='en' ? 'Next' : '下一页';
+  nextBtn.disabled = currentPage === totalPages;
+  nextBtn.className = 'order-btn-big';
+  nextBtn.onclick = function(){ renderProducts(lang, currentPage+1); };
+  pagDiv.appendChild(nextBtn);
+}
+
+// 动态生成30片落叶
+function randomBetween(a, b) { return a + Math.random() * (b - a); }
+function createLeaf(idx) {
+  // 随机选择SVG模板
+  const leafType = Math.floor(Math.random()*3)+1;
+  const svg = document.getElementById('leaf-svg-'+leafType).cloneNode(true);
+  svg.removeAttribute('id');
+  svg.classList.add('falling-leaf');
+  // 随机大小
+  const size = randomBetween(32, 60);
+  svg.style.width = size+'px';
+  svg.style.height = size+'px';
+  // 只在两侧生成
+  let startLeft;
+  if(Math.random()<0.5) {
+    // 左侧 0~20vw
+    startLeft = randomBetween(0, 20);
+  } else {
+    // 右侧 80~100vw
+    startLeft = randomBetween(80, 100);
+  }
+  svg.style.left = startLeft+'vw';
+  svg.style.top = randomBetween(-20, 0)+'vh';
+  // 摆动幅度适中，避免飘到中间
+  const duration = randomBetween(8, 18); // 秒
+  const delay = randomBetween(0, 10); // 秒
+  const swing = randomBetween(10, 30); // 左右摆幅 px
+  const rotate = randomBetween(-90, 90); // 初始旋转
+  svg.style.transform = `rotate(${rotate}deg)`;
+  // 生成唯一动画名
+  const animName = `fallingLeafAnim${idx}`;
+  const keyframes = `@keyframes ${animName} {
+    0% { transform: translateX(0px) rotate(${rotate}deg); opacity:0.85; }
+    10% { opacity:1; }
+    30% { transform: translateX(${-swing}px) rotate(${rotate+30}deg); }
+    50% { transform: translateX(${swing}px) rotate(${rotate-30}deg); }
+    70% { transform: translateX(${-swing/2}px) rotate(${rotate+15}deg); }
+    100% { transform: translateX(${swing/2}px) translateY(100vh) rotate(${rotate+60}deg); opacity:0.1; }
+  }`;
+  // 动态插入keyframes
+  const styleSheet = document.createElement('style');
+  styleSheet.innerHTML = keyframes;
+  document.head.appendChild(styleSheet);
+  svg.style.animation = `${animName} ${duration}s linear ${delay}s infinite`;
+  document.body.appendChild(svg);
+}
+// 清理旧叶子
+function clearLeaves() {
+  document.querySelectorAll('.falling-leaf').forEach(e=>e.remove());
+  document.querySelectorAll('style').forEach(s=>{
+    if(s.innerHTML.includes('fallingLeafAnim')) s.remove();
+  });
+}
+// 初始化落叶
+function initLeaves() {
+  clearLeaves();
+  for(let i=0;i<30;i++) createLeaf(i);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   const lang = getLang();
   document.getElementById('order-modal').style.display = 'none';
   document.getElementById('order-modal').style.alignItems = 'center';
   document.getElementById('order-modal').style.justifyContent = 'center';
-  renderProducts(lang);
+  initLeaves();
+  renderProducts(lang, 1);
 });
 </script>
 

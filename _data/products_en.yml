@@ -42,3 +42,43 @@
   description: >
     Wenzhou Huangtang, also known as Pingyang Huangtang, is produced in Pingyang, Cangnan, Taishun, Rui'an, Yongjia, and other places, with the best quality from Dongxi in Taishun and Beigang in Pingyang.
     The strips are fine and tight, yellow-green with many hairs; the soup is orange-yellow and bright, the leaves are tender and uniform, the aroma is high and distant, and the taste is fresh and slightly sour. The tea is famous for its "three yellows": yellow color, yellow soup, and yellow leaves.
+- name: Dayeqing
+  image: /assets/images/dayeqing.png
+  description: >
+    Dayeqing is a specialty yellow tea from Guangdong, mainly produced in Shaoguan, Zhaoqing, and Zhanjiang. The process is unique, with withering before fixing, then rolling and piling. The tea is mellow and pure, with a yellow color and a smooth taste.
+- name: Anhua Heicha
+  image: /assets/images/anhua.png
+  description: >
+    Anhua Heicha is a post-fermented tea from Anhua, Hunan, known as the ancestor of Chinese dark tea. It has a long history, was once a tribute tea, and is famous for its brick tea products. The tea is mellow, thick, and suitable for long-term storage and transport.
+- name: Jasmine Tea
+  image: /assets/images/molihua.png
+  description: >
+    Jasmine tea is made by scenting tea leaves with fresh jasmine flowers, mainly produced in Fuzhou, Fujian. It is famous for its rich fragrance, combining the aroma of tea and jasmine, and is one of the most popular flower teas in China.
+- name: Bajiaoting Longxu Tea
+  image: /assets/images/longxu.png
+  description: >
+    Bajiaoting Longxu Tea, also called "Bundle Tea", is an oolong tea from Wuyishan and Jian'ou, Fujian. The tea is straight and thick, like "dragon whiskers", with a mellow taste and orange-yellow soup, and is known for its health benefits.
+- name: Yuexi Cuilan
+  image: /assets/images/cuilan.png
+  description: >
+    Yuexi Cuilan is a specialty green tea from Yuexi, Anhui. The tea leaves are beautiful, resembling orchids, with a lasting aroma, bright green soup, and a mellow, sweet taste.
+- name: Hanzhong Xianhao
+  image: /assets/images/xianhao.png
+  description: >
+    Hanzhong Xianhao is a green tea from Hanzhong, Shaanxi, grown in high-altitude, foggy, and pollution-free areas. The tea is aromatic, strong, beautiful in shape, and has health benefits.
+- name: Yongxi Huoqing
+  image: /assets/images/huoqing.png
+  description: >
+    Yongxi Huoqing is a pearl-shaped green tea from Jingxian, Anhui, with a history of over 500 years. The tea is tightly rolled, dark green, with a strong aroma and sweet taste, and is known for its unique fragrance and health effects.
+- name: Tianshan Green Tea
+  image: /assets/images/tianshan.jpg
+  description: >
+    Tianshan Green Tea is a traditional green tea from the Tianshan mountains in Fujian. It is known for its three greens (appearance, soup, and leaves), strong aroma, sweet aftertaste, and health benefits.
+- name: Jin Junmei
+  image: /assets/images/jinjunmei.png
+  description: >
+    Jin Junmei, created in 2005, is a top-grade black tea from Tongmu Village, Wuyishan, Fujian. It is made from single buds, fully handmade, with golden soup, sweet and fragrant taste, and is considered a luxury tea.
+- name: Shuixian
+  image: /assets/images/shuixian.png
+  description: >
+    Shuixian is a famous oolong tea from Fujian, China. It has a long history, with orange-yellow soup, orchid-like aroma, and a mellow, sweet aftertaste.
